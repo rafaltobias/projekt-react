@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit Tracker Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    .code-block {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      font-family: monospace;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #3498db;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <h1>Visit Tracker Example</h1>
+  <p>This page demonstrates the automatic visitor tracking functionality similar to Google Analytics. The tracker automatically collects:</p>
+  <ul>
+    <li>Page URL</li>
+    <li>Referrer URL</li>
+    <li>Browser type and version</li>
+    <li>Operating system</li>
+    <li>Device type (desktop, mobile, tablet)</li>
+    <li>Session data</li>
+    <li>Entry/exit page information</li>
+  </ul>
+
+  <h2>How to Implement the Tracking Script</h2>
+  <p>Add the following code to the <code>&lt;head&gt;</code> section of your website to enable automatic visitor tracking:</p>
+  
+  <div class="code-block">
+    <pre>&lt;script async src="http://localhost:5000/static/tracker.min.js"&gt;&lt;/script&gt;</pre>
+  </div>
+  
+  <h2>Track Custom Events</h2>
+  <p>You can also track custom events using the VisitTracker API:</p>
+  
+  <div class="code-block">
+    <pre>VisitTracker.trackEvent('button_click', { id: 'signup-button', label: 'Sign Up' });</pre>
+  </div>
+  
+  <button id="testButton" class="btn">Click to Test Event Tracking</button>
+  
+  <script>
+    // Wait for the tracker to be loaded
+    document.getElementById('testButton').addEventListener('click', function() {
+      if (window.VisitTracker) {
+        window.VisitTracker.trackEvent('button_click', { 
+          id: 'testButton', 
+          label: 'Test Button', 
+          timestamp: new Date().toISOString()
+        });
+        alert('Event tracked! Check your analytics dashboard.');
+      } else {
+        alert('Tracker not loaded yet. Please try again.');
+      }
+    });
+  </script>
+  <!-- Load the tracking script -->
+  <script async src="http://localhost:5000/static/tracker.min.js"></script>
+</body>
+</html>

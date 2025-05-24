@@ -59,7 +59,9 @@ def create_tables():
         country TEXT,
         session_id TEXT,
         is_entry_page BOOLEAN DEFAULT FALSE,
-        is_exit_page BOOLEAN DEFAULT FALSE
+        is_exit_page BOOLEAN DEFAULT FALSE,
+        event_name TEXT,
+        event_data JSONB
     );
     """
     

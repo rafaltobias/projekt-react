@@ -30,8 +30,7 @@ const Navbar = () => {
                   end
                 >
                   Home
-                </NavLink>
-                <NavLink 
+                </NavLink>                <NavLink 
                   to="/track" 
                   className={({ isActive }) => 
                     `px-3 py-2 rounded-md text-sm font-medium ${
@@ -44,6 +43,17 @@ const Navbar = () => {
                   Track Visits
                 </NavLink>
                 <NavLink 
+                  to="/setup" 
+                  className={({ isActive }) => 
+                    `px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive 
+                        ? 'bg-gray-900 text-white' 
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`
+                  }
+                >
+                  Setup
+                </NavLink>                <NavLink 
                   to="/stats" 
                   className={({ isActive }) => 
                     `px-3 py-2 rounded-md text-sm font-medium ${
@@ -56,6 +66,17 @@ const Navbar = () => {
                   Statistics
                 </NavLink>
                 <NavLink 
+                  to="/analytics" 
+                  className={({ isActive }) => 
+                    `px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive 
+                        ? 'bg-gray-900 text-white' 
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                    }`
+                  }
+                >
+                  Analytics
+                </NavLink><NavLink 
                   to="/tags" 
                   className={({ isActive }) => 
                     `px-3 py-2 rounded-md text-sm font-medium ${
@@ -67,6 +88,14 @@ const Navbar = () => {
                 >
                   Tags
                 </NavLink>
+                <a 
+                  href="http://localhost:5000/tracking-example"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  Demo
+                </a>
               </div>
             </div>
           </div>
@@ -109,8 +138,7 @@ const Navbar = () => {
             end
           >
             Home
-          </NavLink>
-          <NavLink
+          </NavLink>          <NavLink
             to="/track"
             className={({ isActive }) => 
               `block px-3 py-2 rounded-md text-base font-medium ${
@@ -124,6 +152,19 @@ const Navbar = () => {
             Track Visits
           </NavLink>
           <NavLink
+            to="/setup"
+            className={({ isActive }) => 
+              `block px-3 py-2 rounded-md text-base font-medium ${
+                isActive 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+              }`
+            }
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Setup
+          </NavLink>
+          <NavLink
             to="/stats"
             className={({ isActive }) => 
               `block px-3 py-2 rounded-md text-base font-medium ${
@@ -135,8 +176,7 @@ const Navbar = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             Statistics
-          </NavLink>
-          <NavLink
+          </NavLink>          <NavLink
             to="/tags"
             className={({ isActive }) => 
               `block px-3 py-2 rounded-md text-base font-medium ${
@@ -149,6 +189,15 @@ const Navbar = () => {
           >
             Tags
           </NavLink>
+          <a
+            href="http://localhost:5000/tracking-example"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Demo
+          </a>
         </div>
       </div>
     </nav>
