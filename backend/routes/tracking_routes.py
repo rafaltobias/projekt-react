@@ -2,8 +2,10 @@ from flask import Blueprint, request, jsonify, send_from_directory
 from models.tracking_model import (
     add_tracking_event, get_tracking_events, get_page_views, 
     get_custom_events, get_session_data, get_session_analytics, 
-    get_tracking_stats, update_exit_pages, get_real_time_stats
+    update_exit_pages
 )
+from models.stats_model import get_comprehensive_visit_stats, get_realtime_visit_stats
+from models.visit_model import get_visits, get_visits_by_session
 import os
 
 tracking_bp = Blueprint('tracking', __name__)
@@ -127,7 +129,7 @@ def get_stats():
     """Get tracking statistics"""
     try:
         days = request.args.get('days', 30, type=int)
-        stats = get_tracking_stats(days)
+        stats = get_comprehensive_visit_stats(days)
         
         return jsonify(stats)
         
@@ -138,7 +140,7 @@ def get_stats():
 def get_realtime():
     """Get real-time tracking statistics"""
     try:
-        stats = get_real_time_stats()
+        stats = get_realtime_visit_stats()
         return jsonify(stats)
         
     except Exception as e:

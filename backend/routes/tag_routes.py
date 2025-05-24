@@ -12,9 +12,12 @@ def add_tag():
     
     name = data.get('name')
     description = data.get('description')
+    type = data.get('type')
+    trigger = data.get('trigger')
+    config = data.get('config')
     
     try:
-        tag_id = create_tag(name, description)
+        tag_id = create_tag(name, description, type, trigger, config)
         return jsonify({
             'success': True,
             'tag_id': tag_id
@@ -26,7 +29,8 @@ def add_tag():
 def get_tags():
     try:
         tags = get_all_tags()
-        return jsonify(tags)
+        # Make sure we're returning a properly formatted JSON array
+        return jsonify([dict(tag) for tag in tags]) if tags else jsonify([])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

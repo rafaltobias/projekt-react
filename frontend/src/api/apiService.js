@@ -41,9 +41,15 @@ export const exportStats = async () => {
   }
 };
 
-export const createTag = async (name, description = '') => {
+export const createTag = async (name, description = '', type = null, trigger = null, config = null) => {
   try {
-    const response = await axios.post(`${API_URL}/api/tags`, { name, description });
+    const response = await axios.post(`${API_URL}/api/tags`, { 
+      name, 
+      description, 
+      type, 
+      trigger, 
+      config 
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating tag:', error);
@@ -54,10 +60,12 @@ export const createTag = async (name, description = '') => {
 export const getTags = async () => {
   try {
     const response = await axios.get(`${API_URL}/api/tags`);
-    return response.data;
+    // Ensure we always return an array
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching tags:', error);
-    throw error;
+    // Return empty array on error rather than throwing
+    return [];
   }
 };
 

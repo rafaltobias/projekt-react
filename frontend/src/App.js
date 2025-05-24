@@ -7,6 +7,7 @@ import TagsPage from './pages/TagsPage';
 import TrackingPage from './pages/TrackingPage';
 import TrackingSetupPage from './pages/TrackingSetupPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import '../src/static/tag-manager';
 
 function App() {
   return (

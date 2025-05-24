@@ -107,13 +107,17 @@ const TagList = ({ onRefresh, refreshFlag }) => {
               <div className="flex-1 min-w-0">
                 {/* Tag Name */}
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors duration-200">
+                  <div className="w-3 h-3 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"></div>                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors duration-200">
                     {tag.name}
                   </h3>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                     #{index + 1}
                   </span>
+                  {tag.type && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                      {tag.type}
+                    </span>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -122,6 +126,63 @@ const TagList = ({ onRefresh, refreshFlag }) => {
                     {tag.description}
                   </p>
                 )}
+                
+                {/* Trigger & Action Details */}
+                <div className="flex flex-wrap gap-4 pl-6 mb-3">
+                  {/* Trigger Info */}
+                  {tag.trigger && (
+                    <div className="flex items-center text-sm">
+                      <span className="w-5 h-5 bg-purple-100 rounded-full flex items-center justify-center mr-2">
+                        <svg className="w-3 h-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                        </svg>
+                      </span>
+                      <span className="text-gray-700 font-medium">Trigger: </span>
+                      <span className="text-gray-600 ml-1">
+                        {(() => {
+                          try {
+                            const triggerObj = typeof tag.trigger === 'string' && tag.trigger.startsWith('{') 
+                              ? JSON.parse(tag.trigger) 
+                              : tag.trigger;
+                            
+                            if (typeof triggerObj === 'object' && triggerObj.type === 'click') {
+                              return `Click on "${triggerObj.target}"`;
+                            } else {
+                              return typeof triggerObj === 'object' ? triggerObj.type : triggerObj;
+                            }
+                          } catch {
+                            return tag.trigger;
+                          }
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Action Info */}
+                  {tag.config && (
+                    <div className="flex items-center text-sm">
+                      <span className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center mr-2">
+                        <svg className="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </span>
+                      <span className="text-gray-700 font-medium">Action: </span>
+                      <span className="text-gray-600 ml-1">
+                        {(() => {
+                          try {
+                            const config = JSON.parse(tag.config);
+                            if (config.action) {
+                              return `${config.action}${config.value ? `: ${config.value}` : ''}`;
+                            }
+                            return 'None';
+                          } catch {
+                            return 'None';
+                          }
+                        })()}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Created Date */}
                 <div className="flex items-center space-x-2 pl-6">

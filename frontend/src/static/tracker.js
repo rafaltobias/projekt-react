@@ -1,10 +1,11 @@
 /**
  * Visit Tracker - Automatic website visitor tracking script
- * Similar to Google Analytics
+ * With Tag Manager integration for custom events and actions
  */
 (function() {
   // Configuration
   const API_ENDPOINT = 'http://localhost:5000/api/track';
+  const TAGS_ENDPOINT = 'http://localhost:5000/api/tags';
   const SESSION_STORAGE_KEY = 'visitor_tracker_session_id';
   
   // Utility functions
@@ -231,8 +232,7 @@
     getSessionId: function() {
       return getSessionId();
     },
-    
-    getBrowserInfo: function() {
+      getBrowserInfo: function() {
       return {
         browser: detectBrowser(),
         os: detectOS(),
@@ -241,4 +241,147 @@
       };
     }
   };
+  
+  // Tag Manager Functionality
+  const TagManager = {
+    tags: [],
+    initialized: false,
+    
+    // Initialize the tag manager
+    init: async function() {
+      if (this.initialized) return;
+      
+      try {
+        await this.loadTags();
+        this.setupEventListeners();
+        this.initialized = true;
+        console.log('Tag Manager initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize Tag Manager:', error);
+      }
+    },
+    
+    // Load tags from API
+    loadTags: async function() {
+      try {
+        const response = await fetch(TAGS_ENDPOINT);
+        const data = await response.json();
+        this.tags = data || [];
+        console.log(`Loaded ${this.tags.length} tags`);
+      } catch (error) {
+        console.error('Failed to load tags:', error);
+        this.tags = [];
+      }
+    },
+    
+    // Set up tag event listeners
+    setupEventListeners: function() {
+      this.executeTags('page_view');
+      this.executeTags('all_pages');
+      
+      // Set up click listeners
+      this.tags.forEach(tag => {
+        let trigger = tag.trigger;
+        
+        try {
+          // Try to parse JSON if it's a string
+          if (typeof trigger === 'string' && trigger.startsWith('{')) {
+            trigger = JSON.parse(trigger);
+          }
+        } catch (e) {
+          console.error('Error parsing trigger:', e);
+        }
+        
+        // Handle click triggers
+        if ((typeof trigger === 'object' && trigger.type === 'click' && trigger.target) || 
+            trigger === 'click') {
+          
+          const selector = typeof trigger === 'object' ? trigger.target : '';
+          if (!selector) return;
+          
+          setTimeout(() => {
+            const elements = document.querySelectorAll(selector);
+            elements.forEach(el => {
+              // Prevent adding duplicate listeners
+              if (!el.dataset.tagClickListener) {
+                el.addEventListener('click', (event) => {
+                  event.stopPropagation();
+                  this.executeTag(tag);
+                });
+                el.dataset.tagClickListener = "1";
+              }
+            });
+          }, 500); // Small delay to ensure DOM is ready
+        }
+      });
+    },
+    
+    // Execute all tags with a specific trigger
+    executeTags: function(triggerType) {
+      this.tags.forEach(tag => {
+        let trigger = tag.trigger;
+        
+        try {
+          // Try to parse JSON if it's a string
+          if (typeof trigger === 'string' && trigger.startsWith('{')) {
+            trigger = JSON.parse(trigger);
+          }
+        } catch (e) {
+          // Silently handle parse error
+        }
+        
+        if ((typeof trigger === 'object' && trigger.type === triggerType) || 
+            trigger === triggerType) {
+          this.executeTag(tag);
+        }
+      });
+    },
+    
+    // Execute a single tag's action
+    executeTag: function(tag) {
+      let config = {};
+      
+      try {
+        // Try to parse config if it's a string
+        if (typeof tag.config === 'string') {
+          config = JSON.parse(tag.config);
+        } else if (typeof tag.config === 'object') {
+          config = tag.config;
+        }
+      } catch (e) {
+        console.error('Error parsing tag config:', e);
+        return;
+      }
+      
+      // Skip if no action defined
+      if (!config.action) return;
+      
+      // Execute the appropriate action
+      switch (config.action) {
+        case 'alert':
+          alert(config.value || 'Alert!');
+          break;
+        
+        case 'log':
+          console.log('[Tag Manager]', config.value || 'Log event');
+          break;
+        
+        case 'redirect':
+          if (config.value) {
+            window.location.href = config.value;
+          }
+          break;
+        
+        default:
+          // No matching action type
+          break;
+      }
+    }
+  };
+  
+  // Initialize the Tag Manager
+  TagManager.init();
+  
+  // Expose Tag Manager
+  window.VisitTracker.TagManager = TagManager;
 })();
