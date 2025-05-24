@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visits Tracker API</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .method {
+            font-weight: bold;
+            display: inline-block;
+            width: 70px;
+        }
+        .url {
+            font-family: monospace;
+            padding: 3px 6px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Visit Tracker API</h1>
+    <p>This is the API documentation for the Visit Tracker application. Use the React frontend for a better user experience.</p>
+
+    <h2>Visit Endpoints</h2>
+    
+    <div class="endpoint">
+        <p><span class="method">POST</span> <span class="url">/track</span></p>
+        <p>Track a new visit</p>
+        <p><strong>Request Body:</strong></p>
+        <pre><code>{
+    "url": "https://example.com",
+    "tag_id": 1  // optional
+}</code></pre>
+    </div>
+
+    <h2>Stats Endpoints</h2>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/api/stats</span></p>
+        <p>Get visit statistics</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/api/exportStats</span></p>
+        <p>Export visit statistics as CSV</p>
+    </div>
+
+    <h2>Tag Endpoints</h2>
+    
+    <div class="endpoint">
+        <p><span class="method">POST</span> <span class="url">/api/tags</span></p>
+        <p>Create a new tag</p>
+        <p><strong>Request Body:</strong></p>
+        <pre><code>{
+    "name": "Tag Name",
+    "description": "Tag Description"  // optional
+}</code></pre>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/api/tags</span></p>
+        <p>Get all tags</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">GET</span> <span class="url">/api/tags/:id</span></p>
+        <p>Get tag by ID</p>
+    </div>
+    
+    <div class="endpoint">
+        <p><span class="method">DELETE</span> <span class="url">/api/tags/:id</span></p>
+        <p>Delete tag by ID</p>
+    </div>
+
+    <footer>
+        <p>Visit Tracker API &copy; 2025</p>
+    </footer>
+</body>
+</html>
