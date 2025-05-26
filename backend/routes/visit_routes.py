@@ -7,7 +7,6 @@ visit_bp = Blueprint('visit', __name__)
 def get_location_from_ip(ip_address):
     """Get location information from IP address using a free IP geolocation service"""
     try:
-        # Use a free IP geolocation service (you can replace with your preferred service)
         response = requests.get(f'http://ip-api.com/json/{ip_address}', timeout=5)
         if response.status_code == 200:
             data = response.json()
