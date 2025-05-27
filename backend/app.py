@@ -2,13 +2,14 @@ from flask import Flask, request, jsonify, render_template, send_file, send_from
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_restx import Api, Resource
 import os
 
 # Import routes
-from routes.visit_routes import visit_bp
-from routes.stats_routes import stats_bp
-from routes.tag_routes import tag_bp
-from routes.tracking_routes import tracking_bp
+from routes.visit_routes import visit_bp, api as visit_api
+from routes.stats_routes import stats_bp, api as stats_api
+from routes.tag_routes import tag_bp, api as tag_api
+from routes.tracking_routes import tracking_bp, api as tracking_api
 
 app = Flask(__name__, 
             static_folder='static',
@@ -17,10 +18,19 @@ app = Flask(__name__,
 # Configure CORS
 CORS(app)
 
+# Configure Flask-RESTX API with Swagger documentation
+api = Api(
+    app,
+    version='1.0',
+    title='Analytics Tracking API', 
+    description='API for tracking website visits, events, and analytics',
+    doc='/swagger/'  # Swagger UI endpoint
+)
+
 # Configure rate limiting
 limiter = Limiter(
-    app,
     key_func=get_remote_address,
+    app=app,
     default_limits=["100 per 15 minutes"]
 )
 
@@ -29,6 +39,12 @@ app.register_blueprint(visit_bp)
 app.register_blueprint(stats_bp)
 app.register_blueprint(tag_bp)
 app.register_blueprint(tracking_bp)
+
+# Add namespaces to main API for Swagger documentation
+api.add_namespace(visit_api)
+api.add_namespace(stats_api)
+api.add_namespace(tag_api)
+api.add_namespace(tracking_api)
 
 @app.route('/')
 def index():

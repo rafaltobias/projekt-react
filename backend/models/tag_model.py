@@ -1,4 +1,5 @@
 from models.database import execute_query
+import json
 
 def create_tag(name, description=None, type=None, trigger=None, config=None):
     """Create a new tag"""
@@ -7,10 +8,12 @@ def create_tag(name, description=None, type=None, trigger=None, config=None):
     VALUES (%s, %s, %s, %s, %s)
     RETURNING id;
     """
-    params = (name, description, type, trigger, config)
+    # Convert config dict to JSON string if needed
+    config_json = json.dumps(config) if config and isinstance(config, dict) else config
+    params = (name, description, type, trigger, config_json)
     result = execute_query(query, params)
     if result:
-        return result[0]
+        return result[0]['id']
     return None
 
 def get_all_tags():
