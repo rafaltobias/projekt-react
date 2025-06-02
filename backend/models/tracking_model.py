@@ -1,275 +1,136 @@
-from models.database import execute_query
-import json
+"""
+Tracking model using SQLAlchemy ORM instead of raw SQL
+"""
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func, desc
 from datetime import datetime, timedelta
+from models.db_models import TrackingEvent
+from models.db_instance import db
+import logging
 
-def add_tracking_event(session_id, page_url, ip_address, user_agent, referrer=None, 
-                      browser=None, os=None, device=None, country=None, city=None,
-                      is_entry_page=False, is_exit_page=False, event_name=None, event_data=None):
-    """Add a new tracking event to the database"""
-    query = """
-    INSERT INTO tracking_events (
-        session_id, page_url, ip_address, user_agent, referrer, browser, os, device, 
-        country, city, is_entry_page, is_exit_page, event_name, event_data
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    RETURNING id, timestamp;
-    """
-    
-    # Convert event_data dict to JSON if it exists
-    event_data_json = json.dumps(event_data) if event_data else None
-    
-    params = (
-        session_id, page_url, ip_address, user_agent, referrer, browser, os, device,
-        country, city, is_entry_page, is_exit_page, event_name, event_data_json
-    )
-    
-    result = execute_query(query, params)
-    if result:
+logger = logging.getLogger(__name__)
+
+def create_tracking_event(event_data):
+    """Create a new tracking event using ORM"""
+    try:
+        # Create a new TrackingEvent object
+        new_event = TrackingEvent(
+            session_id=event_data.get('session_id'),
+            page_url=event_data.get('page_url'),
+            ip_address=event_data.get('ip_address'),
+            user_agent=event_data.get('user_agent'),
+            referrer=event_data.get('referrer'),
+            browser=event_data.get('browser'),
+            os=event_data.get('os'),
+            device=event_data.get('device'),
+            country=event_data.get('country'),
+            city=event_data.get('city'),
+            is_entry_page=event_data.get('is_entry_page', False),
+            is_exit_page=event_data.get('is_exit_page', False),
+            event_name=event_data.get('event_name'),
+            event_data=event_data.get('event_data'),
+            timestamp=datetime.utcnow()
+        )
+        
+        # Add to session and commit
+        db.session.add(new_event)
+        db.session.commit()
+        
+        # Return the event ID
+        return new_event.id
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        logger.error(f"Database error creating tracking event: {str(e)}")
+        return None
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error creating tracking event: {str(e)}")
+        return None
+
+def get_tracking_events(page=1, page_size=50, filters=None):
+    """Get paginated tracking events with optional filtering"""
+    try:
+        query = TrackingEvent.query
+        
+        # Apply filters if provided
+        if filters:
+            if 'event_name' in filters:
+                query = query.filter(TrackingEvent.event_name == filters['event_name'])
+            if 'page_url' in filters:
+                query = query.filter(TrackingEvent.page_url.like(f"%{filters['page_url']}%"))
+            if 'session_id' in filters:
+                query = query.filter_by(session_id=filters['session_id'])
+            if 'date_from' in filters:
+                query = query.filter(TrackingEvent.timestamp >= filters['date_from'])
+            if 'date_to' in filters:
+                query = query.filter(TrackingEvent.timestamp <= filters['date_to'])
+        
+        # Get total count for pagination
+        total_count = query.count()
+        
+        # Apply pagination
+        offset = (page - 1) * page_size
+        events = query.order_by(TrackingEvent.timestamp.desc()).offset(offset).limit(page_size).all()
+        
+        # Convert to dictionary
+        event_list = [event.to_dict() for event in events]
+        
         return {
-            'id': result[0]['id'],
-            'timestamp': result[0]['timestamp']
+            'events': event_list,
+            'total': total_count,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_count + page_size - 1) // page_size
         }
-    return None
+    except Exception as e:
+        logger.error(f"Error retrieving tracking events: {str(e)}")
+        return {
+            'events': [],
+            'total': 0,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': 0
+        }
 
-def get_tracking_events(limit=100, offset=0):
-    """Get tracking events from the database"""
-    query = """
-    SELECT *
-    FROM tracking_events
-    ORDER BY timestamp DESC
-    LIMIT %s OFFSET %s;
-    """
-    params = (limit, offset)
-    return execute_query(query, params)
-
-def get_page_views(limit=100, offset=0):
-    """Get page views (excluding custom events)"""
-    query = """
-    SELECT *
-    FROM page_views
-    ORDER BY timestamp DESC
-    LIMIT %s OFFSET %s;
-    """
-    params = (limit, offset)
-    return execute_query(query, params)
-
-def get_custom_events(limit=100, offset=0):
-    """Get custom events only"""
-    query = """
-    SELECT *
-    FROM custom_events
-    ORDER BY timestamp DESC
-    LIMIT %s OFFSET %s;
-    """
-    params = (limit, offset)
-    return execute_query(query, params)
-
-def get_session_data(session_id):
-    """Get all tracking events for a specific session"""
-    query = """
-    SELECT *
-    FROM tracking_events
-    WHERE session_id = %s
-    ORDER BY timestamp ASC;
-    """
-    params = (session_id,)
-    return execute_query(query, params)
-
-def get_session_analytics(session_id=None):
-    """Get session analytics data"""
-    if session_id:
-        query = """
-        SELECT *
-        FROM session_analytics
-        WHERE session_id = %s;
-        """
-        params = (session_id,)
-    else:
-        query = """
-        SELECT *
-        FROM session_analytics
-        ORDER BY session_start DESC
-        LIMIT 100;
-        """
-        params = ()
-    
-    return execute_query(query, params)
-
-def get_tracking_stats(days=30):
-    """Get comprehensive tracking statistics"""
-    
-    # Total page views
-    total_query = """
-    SELECT COUNT(*) as total
-    FROM tracking_events
-    WHERE (event_name IS NULL OR event_name = 'page_view')
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days';
-    """
-    total_result = execute_query(total_query, (days,))
-    total_page_views = total_result[0]['total'] if total_result else 0
-    
-    # Unique sessions
-    sessions_query = """
-    SELECT COUNT(DISTINCT session_id) as unique_sessions
-    FROM tracking_events
-    WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days';
-    """
-    sessions_result = execute_query(sessions_query, (days,))
-    unique_sessions = sessions_result[0]['unique_sessions'] if sessions_result else 0
-    
-    # Page views by date
-    daily_query = """
-    SELECT DATE(timestamp) as date, COUNT(*) as page_views
-    FROM tracking_events
-    WHERE (event_name IS NULL OR event_name = 'page_view')
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY DATE(timestamp)
-    ORDER BY date DESC;
-    """
-    daily_stats = execute_query(daily_query, (days,))
-    
-    # Top pages
-    top_pages_query = """
-    SELECT page_url, COUNT(*) as views
-    FROM tracking_events
-    WHERE (event_name IS NULL OR event_name = 'page_view')
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY page_url
-    ORDER BY views DESC
-    LIMIT 10;
-    """
-    top_pages = execute_query(top_pages_query, (days,))
-      # Top referrers
-    top_referrers_query = """
-    SELECT referrer, COUNT(*) as count
-    FROM tracking_events
-    WHERE referrer IS NOT NULL AND referrer != ''
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY referrer
-    ORDER BY count DESC
-    LIMIT 10;
-    """
-    top_referrers = execute_query(top_referrers_query, (days,))
-    
-    # Browser stats
-    browser_stats_query = """
-    SELECT browser, COUNT(*) as count
-    FROM tracking_events
-    WHERE browser IS NOT NULL
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY browser
-    ORDER BY count DESC
-    LIMIT 10;
-    """
-    browser_stats = execute_query(browser_stats_query, (days,))
-    
-    # OS stats
-    os_stats_query = """
-    SELECT os, COUNT(*) as count
-    FROM tracking_events
-    WHERE os IS NOT NULL
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY os
-    ORDER BY count DESC
-    LIMIT 10;
-    """
-    os_stats = execute_query(os_stats_query, (days,))
-    
-    # Device stats
-    device_stats_query = """
-    SELECT device, COUNT(*) as count
-    FROM tracking_events
-    WHERE device IS NOT NULL
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY device
-    ORDER BY count DESC
-    LIMIT 5;
-    """
-    device_stats = execute_query(device_stats_query, (days,))
-    
-    # Country stats
-    country_stats_query = """
-    SELECT country, COUNT(*) as count
-    FROM tracking_events
-    WHERE country IS NOT NULL
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY country
-    ORDER BY count DESC
-    LIMIT 10;
-    """
-    country_stats = execute_query(country_stats_query, (days,))
-      # Custom events stats
-    events_stats_query = """
-    SELECT event_name, COUNT(*) as count
-    FROM tracking_events
-    WHERE event_name IS NOT NULL AND event_name != 'page_view'
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '%s days'
-    GROUP BY event_name
-    ORDER BY count DESC
-    LIMIT 10;
-    """
-    events_stats = execute_query(events_stats_query, (days,))
-    
-    return {
-        'total_page_views': total_page_views,
-        'unique_sessions': unique_sessions,
-        'daily_stats': daily_stats,
-        'top_pages': top_pages,
-        'top_referrers': top_referrers,
-        'browser_stats': browser_stats,
-        'os_stats': os_stats,
-        'device_stats': device_stats,
-        'country_stats': country_stats,
-        'events_stats': events_stats
-    }
-
-def update_exit_pages(session_id, current_event_id):
-    """Update previous events in the session to not be exit pages"""
-    query = """
-    UPDATE tracking_events
-    SET is_exit_page = FALSE
-    WHERE session_id = %s AND id != %s;
-    """
-    params = (session_id, current_event_id)
-    execute_query(query, params)
-    return True
-
-def get_real_time_stats():
-    """Get real-time statistics for dashboard"""
-    # Active sessions (last 30 minutes)
-    active_sessions_query = """
-    SELECT COUNT(DISTINCT session_id) as active_sessions
-    FROM tracking_events
-    WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '30 minutes';
-    """
-    active_result = execute_query(active_sessions_query)
-    active_sessions = active_result[0]['active_sessions'] if active_result else 0
-    
-    # Page views in last hour
-    hourly_query = """
-    SELECT COUNT(*) as hourly_views
-    FROM tracking_events
-    WHERE (event_name IS NULL OR event_name = 'page_view')
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '1 hour';
-    """
-    hourly_result = execute_query(hourly_query)
-    hourly_views = hourly_result[0]['hourly_views'] if hourly_result else 0
-    
-    # Most viewed page in last hour
-    popular_page_query = """
-    SELECT page_url, COUNT(*) as views
-    FROM tracking_events
-    WHERE (event_name IS NULL OR event_name = 'page_view')
-    AND timestamp > CURRENT_TIMESTAMP - INTERVAL '1 hour'
-    GROUP BY page_url
-    ORDER BY views DESC
-    LIMIT 1;
-    """
-    popular_result = execute_query(popular_page_query)
-    popular_page = popular_result[0] if popular_result else None
-    
-    return {
-        'active_sessions': active_sessions,
-        'hourly_views': hourly_views,
-        'popular_page': popular_page
-    }
+def get_event_stats(days=30):
+    """Get event statistics for a given time period"""
+    try:
+        # Calculate date range
+        end_date = datetime.utcnow()
+        start_date = end_date - timedelta(days=days)
+        
+        # Query for event counts by name
+        event_counts = db.session.query(
+            TrackingEvent.event_name, 
+            func.count(TrackingEvent.id).label('count')
+        ).filter(
+            TrackingEvent.timestamp.between(start_date, end_date),
+            TrackingEvent.event_name.isnot(None)
+        ).group_by(
+            TrackingEvent.event_name
+        ).order_by(
+            desc('count')
+        ).all()
+        
+        # Query for event counts by day
+        daily_counts = db.session.query(
+            func.date(TrackingEvent.timestamp).label('date'),
+            func.count(TrackingEvent.id).label('count')
+        ).filter(
+            TrackingEvent.timestamp.between(start_date, end_date)
+        ).group_by(
+            'date'
+        ).order_by(
+            'date'
+        ).all()
+        
+        # Format results
+        event_stats = {
+            'by_event': {event.event_name: count for event, count in event_counts},
+            'by_day': {str(date): count for date, count in daily_counts}
+        }
+        
+        return event_stats
+    except Exception as e:
+        logger.error(f"Error retrieving event statistics: {str(e)}")
+        return {'by_event': {}, 'by_day': {}}

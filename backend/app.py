@@ -3,17 +3,41 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_restx import Api, Resource
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 
-# Import routes
-from routes.visit_routes import visit_bp, api as visit_api
-from routes.stats_routes import stats_bp, api as stats_api
-from routes.tag_routes import tag_bp, api as tag_api
-from routes.tracking_routes import tracking_bp, api as tracking_api
+# Import configuration
+from config import Config
 
+# Create Flask app
 app = Flask(__name__, 
             static_folder='static',
             template_folder='templates')
+
+# Configure app
+app.config.from_object(Config)
+
+# Configure logging
+if not app.debug and not app.testing:
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    
+    file_handler = RotatingFileHandler('logs/analytics.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Analytics application startup')
+
+# Initialize extensions
+from models.db_instance import db
+db.init_app(app)
+migrate = Migrate(app, db)
 
 # Configure CORS
 CORS(app)
@@ -33,6 +57,15 @@ limiter = Limiter(
     app=app,
     default_limits=["100 per 15 minutes"]
 )
+
+# Import models to ensure they are registered with SQLAlchemy
+from models import db_models
+
+# Import routes
+from routes.visit_routes import visit_bp, api as visit_api
+from routes.stats_routes import stats_bp, api as stats_api
+from routes.tag_routes import tag_bp, api as tag_api
+from routes.tracking_routes import tracking_bp, api as tracking_api
 
 # Register blueprints
 app.register_blueprint(visit_bp)

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_restx import Namespace, fields
 from pydantic import ValidationError
-from models.tag_model import create_tag, get_all_tags, get_tag_by_id, delete_tag
+from services.tag_service import TagService
 from schemas.tag_schemas import TagRequest, TagResponse, TagCreateResponse, TagsListResponse
 from schemas.base_schemas import BaseResponse, ErrorResponse
 from utils.validation import (
@@ -42,14 +42,17 @@ def add_tag():
         
         tag_request = validation_result
         
-        # Create the tag
-        tag_id = create_tag(
+        # Create the tag using service
+        tag_id = TagService.create_tag(
             tag_request.name,
             tag_request.description,
             tag_request.type,
             tag_request.trigger,
             tag_request.config
         )
+        
+        if tag_id is None:
+            return create_error_response('Failed to create tag')
         
         # Create response using schema
         response = TagCreateResponse(
@@ -69,7 +72,7 @@ def add_tag():
 def get_tags():
     """Get all tags"""
     try:
-        db_tags = get_all_tags()
+        db_tags = TagService.get_all_tags()
         
         # Map database results to response schemas
         tags = map_db_results_to_schemas(db_tags or [], TagResponse)
@@ -89,7 +92,7 @@ def get_tags():
 def get_tag(id):
     """Get a specific tag by ID"""
     try:
-        db_tag = get_tag_by_id(id)
+        db_tag = TagService.get_tag_by_id(id)
         
         if not db_tag:
             return create_error_response('Tag not found', status_code=404)
@@ -110,7 +113,7 @@ def get_tag(id):
 def remove_tag(id):
     """Delete a specific tag by ID"""
     try:
-        success = delete_tag(id)
+        success = TagService.delete_tag(id)
         
         if not success:
             return create_error_response('Tag not found', status_code=404)

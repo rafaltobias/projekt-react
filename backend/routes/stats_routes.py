@@ -1,11 +1,15 @@
 from flask import Blueprint, request, jsonify, render_template, send_file
 from flask_restx import Namespace, Resource
-from models.stats_model import get_visit_stats, generate_stats_csv
+from services.stats_service import StatsService
+from services.file_serving_service import FileServingService
 from schemas.stats_schemas import VisitStatsResponse, ComprehensiveStatsResponse
 from schemas.base_schemas import ErrorResponse
 from utils.validation import create_error_response
 from datetime import datetime
 import io
+import logging
+
+logger = logging.getLogger(__name__)
 
 stats_bp = Blueprint('stats', __name__)
 
@@ -19,7 +23,7 @@ api = Namespace('stats', description='Statistics endpoints')
 def get_stats():
     """Get visit statistics"""
     try:
-        stats_data = get_visit_stats()
+        stats_data = StatsService.get_visit_stats()
         
         # Create response using schema
         response = VisitStatsResponse(
@@ -41,6 +45,7 @@ def get_stats():
         return jsonify(response.model_dump())
         
     except Exception as e:
+        logger.error(f"Failed to retrieve statistics: {str(e)}")
         return create_error_response(f'Failed to retrieve statistics: {str(e)}', status_code=500)
 
 @stats_bp.route('/stats', methods=['GET'])
@@ -50,14 +55,15 @@ def get_stats_page():
 
 @stats_bp.route('/api/exportStats', methods=['GET'])
 def export_stats():
+    """Export visit statistics as CSV"""
     try:
-        csv_buffer = generate_stats_csv()
+        # Prepare CSV using service business logic
+        csv_buffer = StatsService.prepare_csv_export()
         if not csv_buffer:
             return jsonify({'error': 'No data available'}), 404
             
-        # Generate filename with current date
-        date_str = datetime.now().strftime('%Y-%m-%d')
-        filename = f"visit-stats-{date_str}.csv"
+        # Generate filename using service
+        filename = StatsService.generate_export_filename('csv')
         
         # Convert StringIO to BytesIO for send_file
         bytes_io = io.BytesIO(csv_buffer.getvalue().encode('utf-8'))
@@ -70,4 +76,5 @@ def export_stats():
             download_name=filename
         )
     except Exception as e:
+        logger.error(f"Failed to export statistics: {str(e)}")
         return jsonify({'error': str(e)}), 500

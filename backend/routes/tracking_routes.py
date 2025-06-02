@@ -1,13 +1,8 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 from flask_restx import Namespace, Resource, fields
-from pydantic import ValidationError
-from models.tracking_model import (
-    add_tracking_event, get_tracking_events, get_page_views, 
-    get_custom_events, get_session_data, get_session_analytics, 
-    update_exit_pages
-)
-from models.stats_model import get_comprehensive_visit_stats, get_realtime_visit_stats
-from models.visit_model import get_visits, get_visits_by_session
+from services.tracking_service import TrackingService
+from services.request_processing_service import RequestProcessingService
+from services.file_serving_service import FileServingService
 from schemas.tracking_schemas import (
     TrackingEventRequest, TrackingEventResponse, TrackingEventCreateResponse,
     TrackingEventsResponse, SessionDataResponse, SessionAnalyticsResponse,
@@ -15,8 +10,7 @@ from schemas.tracking_schemas import (
 )
 from schemas.base_schemas import PaginationParams, DateRangeParams, ErrorResponse
 from utils.validation import (
-    validate_request_data, map_db_result_to_schema, map_db_results_to_schemas,
-    create_success_response, create_error_response
+    validate_request_data, create_success_response, create_error_response
 )
 import os
 
@@ -59,36 +53,16 @@ def track_event():
         
         tracking_request = validation_result
         
-        # Add IP address and user agent from request headers
-        ip_address = request.remote_addr
-        user_agent = request.headers.get('User-Agent')
+        # Extract request metadata using service
+        request_metadata = RequestProcessingService.extract_request_metadata(request)
         
-        # Use referrer from request data or headers
-        referrer = tracking_request.referrer or request.headers.get('Referer')
-        
-        # Add the tracking event
-        result = add_tracking_event(
-            session_id=tracking_request.session_id,
-            page_url=tracking_request.page_url,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            referrer=referrer,
-            browser=tracking_request.browser,
-            os=tracking_request.os,
-            device=tracking_request.device,
-            country=tracking_request.country,
-            city=tracking_request.city,
-            is_entry_page=tracking_request.is_entry_page,
-            is_exit_page=tracking_request.is_exit_page,
-            event_name=tracking_request.event_name,
-            event_data=tracking_request.event_data
+        # Process tracking event using business logic service
+        result = TrackingService.process_tracking_event(
+            tracking_request.model_dump(),
+            request_metadata
         )
         
         if result:
-            # Update previous events in session to not be exit pages
-            if not tracking_request.is_exit_page:
-                update_exit_pages(tracking_request.session_id, result['id'])
-            
             # Create response using schema
             response = TrackingEventCreateResponse(
                 success=True,
@@ -124,26 +98,27 @@ def get_events():
         event_type = request.args.get('type', 'all')  # all, page_views, custom_events
         
         offset = (pagination.page - 1) * pagination.per_page
-        
-        # Get events based on type
+          # Get events based on type using service
         if event_type == 'page_views':
-            db_events = get_page_views(limit=pagination.per_page, offset=offset)
+            db_events = TrackingService.get_page_views(limit=pagination.per_page, offset=offset)
         elif event_type == 'custom_events':
-            db_events = get_custom_events(limit=pagination.per_page, offset=offset)
+            db_events = TrackingService.get_custom_events(limit=pagination.per_page, offset=offset)
         else:
-            db_events = get_tracking_events(limit=pagination.per_page, offset=offset)
-        
-        # Map database results to response schemas
-        events = map_db_results_to_schemas(db_events, TrackingEventResponse)
-        
-        # Create response using schema
+            db_events = TrackingService.get_tracking_events(limit=pagination.per_page, offset=offset)
+          # Map database results to response schemas
+        events = []
+        for event in db_events:
+            # Convert to dict if it's not already (handles both ORM objects and dicts)
+            event_dict = event if isinstance(event, dict) else event
+            events.append(event_dict)
+          # Create response using schema
         response = TrackingEventsResponse(
             events=events,
             page=pagination.page,
             per_page=pagination.per_page,
             type=event_type,
-            total=len(db_events),  # This should ideally come from a count query
-            has_next=len(db_events) == pagination.per_page
+            total=len(events),  # This should ideally come from a count query
+            has_next=len(events) == pagination.per_page
         )
         
         return jsonify(response.model_dump())
@@ -157,15 +132,13 @@ def get_events():
 @api.response(500, 'Internal server error')
 def get_session(session_id):
     """Get all events for a specific session"""
-    try:
-        # Get session data from model
-        session_data = get_session_data(session_id)
+    try:        # Get session data from service
+        session_data = TrackingService.get_session_data(session_id)
         
         if not session_data:
             return create_error_response('Session not found', status_code=404)
-        
-        # Map events to response schemas
-        events = map_db_results_to_schemas(session_data.get('events', []), TrackingEventResponse)
+          # Map events to response schemas - events are already dicts from service
+        events = session_data.get('events', [])
         
         # Create response using schema
         response = SessionDataResponse(
@@ -188,7 +161,7 @@ def get_session(session_id):
 def get_sessions():
     """Get session analytics"""
     try:
-        sessions_data = get_session_analytics()
+        sessions_data = TrackingService.get_session_analytics()
         
         # Create response using schema
         response = SessionAnalyticsResponse(
@@ -220,9 +193,8 @@ def get_stats():
         validation_result = validate_request_data(DateRangeParams, params_data)
         if isinstance(validation_result, tuple):  # Error response
             return validation_result
-        
         date_params = validation_result
-        stats_data = get_comprehensive_visit_stats(date_params.days)
+        stats_data = TrackingService.get_tracking_stats(date_params.days)
         
         # Create response using schema
         response = TrackingStatsResponse(
@@ -246,12 +218,10 @@ def get_stats():
 def get_realtime():
     """Get real-time tracking statistics"""
     try:
-        stats_data = get_realtime_visit_stats()
+        stats_data = TrackingService.get_realtime_stats()
         
-        # Map recent events to response schemas
-        recent_events = []
-        if 'recent_events' in stats_data:
-            recent_events = map_db_results_to_schemas(stats_data['recent_events'], TrackingEventResponse)
+        # Map recent events - they're already dicts from service
+        recent_events = stats_data.get('recent_events', [])
         
         # Create response using schema
         response = RealtimeStatsResponse(
@@ -271,12 +241,12 @@ def get_realtime():
 def serve_tracker_js():
     """Serve the tracking script"""
     try:
-        # Get the path to the frontend static files
-        frontend_static_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            '..', 'frontend', 'src', 'static'
-        )
-        return send_from_directory(frontend_static_path, 'tracker.js')
+        static_path, filename = FileServingService.get_tracker_script_info('regular')
+        
+        if not FileServingService.validate_file_exists(static_path, filename):
+            return jsonify({'error': 'Tracker script not found'}), 404
+            
+        return send_from_directory(static_path, filename)
     except Exception as e:
         return jsonify({'error': 'Tracker script not found'}), 404
 
@@ -284,12 +254,12 @@ def serve_tracker_js():
 def serve_tracker_min_js():
     """Serve the minified tracking script"""
     try:
-        # Get the path to the frontend static files
-        frontend_static_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            '..', 'frontend', 'src', 'static'
-        )
-        return send_from_directory(frontend_static_path, 'tracker.min.js')
+        static_path, filename = FileServingService.get_tracker_script_info('minified')
+        
+        if not FileServingService.validate_file_exists(static_path, filename):
+            return jsonify({'error': 'Tracker script not found'}), 404
+            
+        return send_from_directory(static_path, filename)
     except Exception as e:
         return jsonify({'error': 'Tracker script not found'}), 404
 
@@ -298,11 +268,12 @@ def serve_tracker_min_js():
 def serve_tracking_example():
     """Serve the tracking example page"""
     try:
-        # Get the path to the frontend public files
-        frontend_public_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            '..', 'frontend', 'public'
-        )
-        return send_from_directory(frontend_public_path, 'tracking-example.html')
+        public_path = FileServingService.get_frontend_public_path()
+        filename = 'tracking-example.html'
+        
+        if not FileServingService.validate_file_exists(public_path, filename):
+            return jsonify({'error': 'Example page not found'}), 404
+            
+        return send_from_directory(public_path, filename)
     except Exception as e:
         return jsonify({'error': 'Example page not found'}), 404
