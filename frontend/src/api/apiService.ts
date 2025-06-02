@@ -76,7 +76,11 @@ export const createTag = async (
 export const getTags = async (): Promise<Tag[]> => {
   try {
     const response = await axios.get(`${API_URL}/api/tags`);
-    // Ensure we always return an array
+    // Handle the response format { tags: [...] }
+    if (response.data && Array.isArray(response.data.tags)) {
+      return response.data.tags;
+    }
+    // Fallback: if it's a direct array
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching tags:', error);

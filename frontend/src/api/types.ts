@@ -75,6 +75,13 @@ export interface Stats {
   operating_systems: OperatingSystemStat[];
   countries: CountryStat[];
   total_visits: number;
+  unique_visitors?: number;
+  page_views?: number;
+  bounce_rate?: number;
+  average_session_duration?: number;
+  hourly_visits?: { hour: number; count: number }[];
+  devices?: { device: string; count: number }[];
+  top_referrers?: PageInfo[];
 }
 
 // Chart.js data types

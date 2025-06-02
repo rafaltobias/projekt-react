@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getTrackingStats, getRealtimeStats } from '../api/trackingService';
-import { TrackingStats, RealtimeStats } from '../api/types';
+import { getStats } from '../api/apiService';
+import { RealtimeStats, Stats } from '../api/types';
 
 const TrackingDashboard: React.FC = () => {
-  const [stats, setStats] = useState<TrackingStats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [realtimeStats, setRealtimeStats] = useState<RealtimeStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -18,11 +18,10 @@ const TrackingDashboard: React.FC = () => {
     
     return () => clearInterval(interval);
   }, [timeframe]);
-
   const fetchStats = async (): Promise<void> => {
     try {
       setLoading(true);
-      const data = await getTrackingStats(timeframe);
+      const data = await getStats();
       setStats(data);
     } catch (err) {
       setError('Failed to fetch tracking statistics');
@@ -30,12 +29,18 @@ const TrackingDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchRealtimeStats = async (): Promise<void> => {
+  };  const fetchRealtimeStats = async (): Promise<void> => {
     try {
-      const data = await getRealtimeStats();
-      setRealtimeStats(data);
+      // Since real-time tracking stats are empty, we'll derive activity from main stats
+      const data = await getStats();
+      // Create a mock real-time stats object from available data
+      const mockRealtimeStats: RealtimeStats = {
+        active_sessions: data.unique_visitors || 0,
+        page_views_last_hour: data.hourly_visits?.reduce((sum, hour) => sum + hour.count, 0) || 0,
+        top_pages_today: data.top_pages || [],
+        recent_events: []
+      };
+      setRealtimeStats(mockRealtimeStats);
     } catch (err) {
       console.error('Failed to fetch real-time stats:', err);
     }
@@ -148,14 +153,12 @@ const TrackingDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Main Stats Cards */}
+        )}        {/* Main Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-700">Total Page Views</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Total Visits</h3>
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -163,24 +166,24 @@ const TrackingDashboard: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-blue-600">{stats.total_page_views?.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-blue-600">{stats.total_visits?.toLocaleString()}</div>
             </div>
             
             <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-700">Unique Sessions</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Top Pages</h3>
                 <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-emerald-600">{stats.unique_sessions?.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-emerald-600">{stats.top_pages?.length || 0}</div>
             </div>
             
             <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-700">Avg. Views/Session</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Browsers</h3>
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -188,12 +191,12 @@ const TrackingDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-3xl font-bold text-purple-600">
-                {stats.unique_sessions > 0 ? (stats.total_page_views / stats.unique_sessions).toFixed(1) : '0'}
+                {stats.browsers?.length || 0}
               </div>
             </div>
               <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-gray-700">Custom Events</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Countries</h3>
                 <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -201,7 +204,7 @@ const TrackingDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-3xl font-bold text-orange-600">
-                {stats.total_custom_events?.toLocaleString() || '0'}
+                {stats.countries?.length || 0}
               </div>
             </div>
           </div>
