@@ -13,10 +13,9 @@ const AnalyticsPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Analytics Dashboard</h1>
+          </div>          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Pulpit analityczny</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Comprehensive tracking and analytics for your website's performance and user engagement
+            Kompleksowe śledzenie i analityka wydajności strony internetowej oraz zaangażowania użytkowników
           </p>
         </div>
         

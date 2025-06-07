@@ -13,14 +13,13 @@ const Navbar: React.FC = () => {
   const toggleMenu = (): void => {
     setIsMenuOpen(!isMenuOpen);
   };
-
   const navItems: NavItem[] = [
-    { to: "/", label: "Home", end: true },
-    { to: "/track", label: "Track Visits" },
-    { to: "/setup", label: "Setup" },
-    { to: "/stats", label: "Statistics" },
-    { to: "/analytics", label: "Analytics" },
-    { to: "/tags", label: "Tags" }
+    { to: "/", label: "Strona główna", end: true },
+    { to: "/track", label: "Śledzenie wizyt" },
+    { to: "/setup", label: "Konfiguracja" },
+    { to: "/stats", label: "Statystyki" },
+    { to: "/analytics", label: "Analityka" },
+    { to: "/tags", label: "Tagi" }
   ];
 
   return (
@@ -36,7 +35,7 @@ const Navbar: React.FC = () => {
                     <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <span className="font-bold text-xl">Visit Tracker</span>
+                <span className="font-bold text-xl">System Śledzenia Wizyt</span>
               </Link>
             </div>
             

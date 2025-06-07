@@ -14,19 +14,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
-      <footer className="bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white">        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <h3 className="text-lg font-semibold text-blue-400">Visit Tracker</h3>
-              <p className="text-gray-400 text-sm">Professional website analytics solution</p>
+              <h3 className="text-lg font-semibold text-blue-400">System Śledzenia Wizyt</h3>
+              <p className="text-gray-400 text-sm">Profesjonalne rozwiązanie analityczne dla stron internetowych</p>
             </div>
             <div className="text-gray-400 text-sm">
-              © {new Date().getFullYear()} Visit Tracker. All rights reserved.
+              © {new Date().getFullYear()} System Śledzenia Wizyt. Wszelkie prawa zastrzeżone.
             </div>
           </div>
           <div className="mt-6 pt-6 border-t border-gray-700 text-center text-gray-500 text-xs">
-            <p>Built with React • Powered by modern analytics</p>
+            <p>Zbudowany w React • Napędzany nowoczesnymi technologiami analitycznymi</p>
           </div>
         </div>
       </footer>

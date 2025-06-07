@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import ConsentManager from '../utils/ConsentManager';
 
 const TrackingSetupPage: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState<string>('');
+  const [consentStatus, setConsentStatus] = useState(ConsentManager.getConsentStatus());
 
   const trackingCode = `<script async src="http://localhost:5000/static/tracker.min.js"></script>`;
   
@@ -11,12 +13,26 @@ VisitTracker.trackEvent('button_click', {
   label: 'Sign Up',
   timestamp: new Date().toISOString()
 });`;
-
   const copyToClipboard = (text: string): void => {
     navigator.clipboard.writeText(text).then(() => {
       setCopySuccess('Copied!');
       setTimeout(() => setCopySuccess(''), 2000);
     });
+  };
+
+  const handleGrantConsent = () => {
+    ConsentManager.grantConsent();
+    setConsentStatus(ConsentManager.getConsentStatus());
+  };
+
+  const handleDenyConsent = () => {
+    ConsentManager.denyConsent();
+    setConsentStatus(ConsentManager.getConsentStatus());
+  };
+
+  const handleClearConsent = () => {
+    ConsentManager.clearConsent();
+    setConsentStatus(ConsentManager.getConsentStatus());
   };
 
   return (
@@ -362,7 +378,87 @@ function add_visit_tracker() {
 add_action('wp_head', 'add_visit_tracker');`}
                     </pre>
                   </div>
-                </details>
+                </details>              </div>
+            </div>
+
+            {/* Consent Management Section */}
+            <div className="mt-10">
+              <div className="flex items-center mb-6">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.414-4.414a2 2 0 00-2.828 0L7.171 11l-3.586-3.586a2 2 0 00-2.828 2.828l5 5a2 2 0 002.828 0l11-11a2 2 0 00-2.828-2.828z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Zarządzanie zgodą na udostępnianie danych</h2>
+              </div>
+              
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                <p className="text-gray-700 mb-6">
+                  Ta sekcja umożliwia zarządzanie zgodą na udostępnianie danych do celów pracy inżynierskiej. 
+                  Aktualna implementacja uwzględnia RODO i wymaga zgody użytkownika przed rozpoczęciem śledzenia.
+                </p>
+
+                <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-3">Obecny status zgody:</h3>
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      consentStatus.granted ? 'bg-green-500' : 
+                      consentStatus.hasDecision ? 'bg-red-500' : 'bg-gray-400'
+                    }`}></div>
+                    <span className="font-medium">
+                      {consentStatus.granted 
+                        ? 'Zgoda udzielona' 
+                        : consentStatus.hasDecision 
+                        ? 'Zgoda odrzucona' 
+                        : 'Brak decyzji'}
+                    </span>
+                    {consentStatus.timestamp && (
+                      <span className="text-sm text-gray-500">
+                        ({new Date(consentStatus.timestamp).toLocaleDateString('pl-PL')})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={handleGrantConsent}
+                    className="flex items-center justify-center px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Wyrażam zgodę
+                  </button>
+                  
+                  <button
+                    onClick={handleDenyConsent}
+                    className="flex items-center justify-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Odmawiam zgody
+                  </button>
+                  
+                  <button
+                    onClick={handleClearConsent}
+                    className="flex items-center justify-center px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Usuń decyzję
+                  </button>
+                </div>
+
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-2">Informacja dla programistów:</h4>
+                  <p className="text-yellow-700 text-sm">
+                    Skrypt śledzący automatycznie sprawdza zgodę przed zbieraniem danych. 
+                    Jeśli użytkownik nie wyrazi zgody, żadne dane nie będą wysyłane do serwera.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

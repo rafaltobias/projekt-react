@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Layout from './components/Layout';
+import ConsentPopup from './components/ConsentPopup';
 import HomePage from './pages/HomePage';
 import StatsPage from './pages/StatsPage';
 import TagsPage from './pages/TagsPage';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
           <Route path="/tags" element={<TagsPage />} />
         </Routes>
       </Layout>
+      <ConsentPopup />
     </Router>
   );
 };

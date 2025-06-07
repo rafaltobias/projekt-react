@@ -60,14 +60,31 @@
     <pre>&lt;script async src="http://localhost:5000/static/tracker.min.js"&gt;&lt;/script&gt;</pre>
   </div>
   
+  <h2>Data Sharing Consent for Engineering Thesis</h2>
+  <p><strong>Important:</strong> This tracking system requires user consent before collecting any data. The data is used exclusively for engineering thesis research purposes.</p>
+  
+  <div class="code-block">
+    <strong>What we collect:</strong><br>
+    • Page URLs and referrer information<br>
+    • Browser type and operating system<br>
+    • Device type (desktop/mobile/tablet)<br>
+    • Basic session data<br><br>
+    <strong>Privacy guarantees:</strong><br>
+    • No personal data collection<br>
+    • Data used only for academic purposes<br>
+    • GDPR compliant<br>
+    • Consent can be withdrawn at any time
+  </div>
+
   <h2>Track Custom Events</h2>
   <p>You can also track custom events using the VisitTracker API:</p>
   
   <div class="code-block">
     <pre>VisitTracker.trackEvent('button_click', { id: 'signup-button', label: 'Sign Up' });</pre>
-  </div>
-  
+  </div>  
   <button id="testButton" class="btn">Click to Test Event Tracking</button>
+  <button id="checkConsentButton" class="btn">Check Consent Status</button>
+  <button id="clearConsentButton" class="btn">Clear Consent (Reset)</button>
   
   <script>
     // Wait for the tracker to be loaded
@@ -82,6 +99,34 @@
       } else {
         alert('Tracker not loaded yet. Please try again.');
       }
+    });
+
+    // Check consent status
+    document.getElementById('checkConsentButton').addEventListener('click', function() {
+      const consent = localStorage.getItem('data_sharing_consent');
+      const timestamp = localStorage.getItem('consent_timestamp');
+      
+      let message = 'Consent Status: ';
+      if (consent === 'granted') {
+        message += 'GRANTED';
+      } else if (consent === 'denied') {
+        message += 'DENIED';
+      } else {
+        message += 'NOT SET (popup should appear)';
+      }
+      
+      if (timestamp) {
+        message += '\nDecision made: ' + new Date(timestamp).toLocaleString();
+      }
+      
+      alert(message);
+    });
+
+    // Clear consent for testing
+    document.getElementById('clearConsentButton').addEventListener('click', function() {
+      localStorage.removeItem('data_sharing_consent');
+      localStorage.removeItem('consent_timestamp');
+      alert('Consent cleared! Refresh the page to see the consent popup again.');
     });
   </script>
   <!-- Load the tracking script -->

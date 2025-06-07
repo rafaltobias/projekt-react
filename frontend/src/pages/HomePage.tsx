@@ -17,44 +17,43 @@ interface AdditionalFeature {
   icon: string;
 }
 
-const HomePage: React.FC = () => {
-  const features: Feature[] = [
+const HomePage: React.FC = () => {  const features: Feature[] = [
     {
-      title: "Track Visits",
-      description: "Record visits to your websites. Add optional tags for better organization.",
+      title: "Śledź wizyty",
+      description: "Rejestruj wizyty na swoich stronach internetowych. Dodawaj opcjonalne tagi dla lepszej organizacji.",
       icon: (
         <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
         </svg>
       ),
       link: "/track",
-      linkText: "Start Tracking",
+      linkText: "Rozpocznij śledzenie",
       bgGradient: "from-blue-500 to-blue-600",
       hoverGradient: "from-blue-600 to-blue-700"
     },
     {
-      title: "View Statistics",
-      description: "Visualize and analyze your visit data with interactive charts and graphs.",
+      title: "Zobacz statystyki",
+      description: "Wizualizuj i analizuj swoje dane o wizytach za pomocą interaktywnych wykresów i grafów.",
       icon: (
         <svg className="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
           <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
         </svg>
       ),
       link: "/stats",
-      linkText: "View Stats",
+      linkText: "Zobacz statystyki",
       bgGradient: "from-green-500 to-green-600",
       hoverGradient: "from-green-600 to-green-700"
     },
     {
-      title: "Manage Tags",
-      description: "Create and organize tags to categorize and segment your visit data.",
+      title: "Zarządzaj tagami",
+      description: "Twórz i organizuj tagi do kategoryzowania i segmentacji danych o wizytach.",
       icon: (
         <svg className="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
         </svg>
       ),
       link: "/tags",
-      linkText: "Manage Tags",
+      linkText: "Zarządzaj tagami",
       bgGradient: "from-purple-500 to-purple-600",
       hoverGradient: "from-purple-600 to-purple-700"
     }
@@ -62,23 +61,23 @@ const HomePage: React.FC = () => {
 
   const additionalFeatures: AdditionalFeature[] = [
     {
-      title: "Visit Tracking",
-      description: "Record and store visit information",
+      title: "Śledzenie wizyt",
+      description: "Rejestruj i przechowuj informacje o wizytach",
       icon: "📊"
     },
     {
-      title: "Tag Management",
-      description: "Organize visits with custom tags",
+      title: "Zarządzanie tagami",
+      description: "Organizuj wizyty za pomocą niestandardowych tagów",
       icon: "🏷️"
     },
     {
-      title: "Visual Analytics",
-      description: "Visualize data with charts",
+      title: "Analityka wizualna",
+      description: "Wizualizuj dane za pomocą wykresów",
       icon: "📈"
     },
     {
-      title: "Data Export",
-      description: "Export your data as CSV",
+      title: "Eksport danych",
+      description: "Eksportuj swoje dane jako CSV",
       icon: "💾"
     }
   ];
@@ -89,16 +88,15 @@ const HomePage: React.FC = () => {
       <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              <span className="block">Professional</span>
+          <div className="text-center">            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              <span className="block">Profesjonalny</span>
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                Visit Tracker
+                System Śledzenia Wizyt
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Track and analyze website visits with ease. Get detailed insights into your visitor behavior, 
-              browser statistics, and performance metrics.
+              Śledź i analizuj wizyty na stronie internetowej z łatwością. Uzyskaj szczegółowe informacje o zachowaniu odwiedzających, 
+              statystyki przeglądarek i metryki wydajności.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
@@ -107,8 +105,7 @@ const HomePage: React.FC = () => {
               >
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clipRule="evenodd" />
-                </svg>
-                Get Started
+                </svg>                Rozpocznij
               </Link>
               <Link 
                 to="/analytics" 
@@ -117,7 +114,7 @@ const HomePage: React.FC = () => {
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
-                View Analytics
+                Zobacz analitykę
               </Link>
             </div>
           </div>
@@ -126,13 +123,12 @@ const HomePage: React.FC = () => {
 
       {/* Main Features Section */}
       <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">          <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Powerful Features
+              Potężne funkcje
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Everything you need to track, analyze, and understand your website visitors
+              Wszystko czego potrzebujesz do śledzenia, analizowania i zrozumienia odwiedzających Twoją stronę
             </p>
           </div>
           
@@ -167,13 +163,12 @@ const HomePage: React.FC = () => {
 
       {/* Additional Features Section */}
       <div className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">          <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Additional Features
+              Dodatkowe funkcje
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Comprehensive tools for complete website analytics
+              Kompleksowe narzędzia do pełnej analityki strony internetowej
             </p>
           </div>
           
@@ -194,27 +189,26 @@ const HomePage: React.FC = () => {
 
       {/* Stats Preview Section */}
       <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 text-center text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 text-center text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Get Started?
+              Gotowy żeby zacząć?
             </h2>
             <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-              Join thousands of websites using our analytics platform to understand their visitors better
+              Dołącz do tysięcy stron internetowych korzystających z naszej platformy analitycznej, aby lepiej zrozumieć swoich odwiedzających
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/setup" 
                 className="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
               >
-                Setup Tracking
+                Konfiguruj śledzenie
               </Link>
               <a 
                 href="http://localhost:5000/tracking-example"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-8 py-4 bg-transparent text-white font-semibold rounded-xl border-2 border-white hover:bg-white hover:text-blue-600 transition-all duration-200"              >
-                View Demo
+                Zobacz demo
               </a>
             </div>
           </div>

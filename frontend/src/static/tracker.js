@@ -1,12 +1,25 @@
 /**
  * Visit Tracker - Automatic website visitor tracking script
  * With Tag Manager integration for custom events and actions
+ * Includes consent management for data sharing
  */
 (function() {
   // Configuration
   const API_ENDPOINT = 'http://localhost:5000/api/track';
   const TAGS_ENDPOINT = 'http://localhost:5000/api/tags';
   const SESSION_STORAGE_KEY = 'visitor_tracker_session_id';
+  const CONSENT_KEY = 'data_sharing_consent';
+
+  // Consent check function
+  function hasConsent() {
+    const consent = localStorage.getItem(CONSENT_KEY);
+    return consent === 'granted';
+  }
+
+  // Check if tracking is allowed
+  function isTrackingAllowed() {
+    return hasConsent();
+  }
   
   // Utility functions
   function generateSessionId() {
@@ -81,9 +94,14 @@
       return 'Desktop';
     }
   }
-  
-  // Visit tracker
+    // Visit tracker
   function trackVisit(isEntryPage = false) {
+    // Check if tracking is allowed
+    if (!isTrackingAllowed()) {
+      console.debug('Tracking skipped - no consent granted');
+      return;
+    }
+
     try {
       const sessionId = getSessionId();
       const browser = detectBrowser();
@@ -126,9 +144,14 @@
       console.error('Error in tracking visit:', error);
     }
   }
-  
-  // Track exit page
+    // Track exit page
   function trackExitPage() {
+    // Check if tracking is allowed
+    if (!isTrackingAllowed()) {
+      console.debug('Exit page tracking skipped - no consent granted');
+      return;
+    }
+
     try {
       const sessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (sessionId) {
@@ -172,10 +195,15 @@
   // Set up event listeners
   window.addEventListener('beforeunload', trackExitPage);
   window.addEventListener('pagehide', trackExitPage);
-  
-  // Track page visibility changes (when user switches tabs or minimizes browser)
+    // Track page visibility changes (when user switches tabs or minimizes browser)
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'hidden') {
+      // Check if tracking is allowed
+      if (!isTrackingAllowed()) {
+        console.debug('Visibility tracking skipped - no consent granted');
+        return;
+      }
+
       const visitData = {
         page_url: window.location.href,
         session_id: getSessionId(),
@@ -190,10 +218,15 @@
       }
     }
   });
-  
-  // Expose the tracker API
+    // Expose the tracker API
   window.VisitTracker = {
     trackEvent: function(eventName, eventData) {
+      // Check if tracking is allowed
+      if (!isTrackingAllowed()) {
+        console.debug('Event tracking skipped - no consent granted');
+        return;
+      }
+
       try {
         const sessionId = getSessionId();
         const visitData = {
