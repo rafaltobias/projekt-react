@@ -1,8 +1,10 @@
-from flask import Blueprint, request, jsonify, send_from_directory
+from flask import Blueprint, request, jsonify, send_from_directory, Response
 from flask_restx import Namespace, Resource, fields
+import os
 from services.tracking_service import TrackingService
 from services.request_processing_service import RequestProcessingService
 from services.file_serving_service import FileServingService
+from config import Config
 from schemas.tracking_schemas import (
     TrackingEventRequest, TrackingEventResponse, TrackingEventCreateResponse,
     TrackingEventsResponse, SessionDataResponse, SessionAnalyticsResponse,
@@ -239,27 +241,58 @@ def get_realtime():
 # Serve tracking script
 @tracking_bp.route('/static/tracker.js', methods=['GET'])
 def serve_tracker_js():
-    """Serve the tracking script"""
+    """Serve the tracking script with dynamic configuration"""
     try:
         static_path, filename = FileServingService.get_tracker_script_info('regular')
         
         if not FileServingService.validate_file_exists(static_path, filename):
             return jsonify({'error': 'Tracker script not found'}), 404
-            
-        return send_from_directory(static_path, filename)
+        
+        # Read the original file
+        with open(os.path.join(static_path, filename), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Replace hardcoded URLs with configuration
+        api_url = Config.API_BASE_URL
+        content = content.replace(
+            "const API_ENDPOINT = 'http://localhost:5000/api/track';",
+            f"const API_ENDPOINT = '{api_url}/api/track';"
+        )
+        content = content.replace(
+            "const TAGS_ENDPOINT = 'http://localhost:5000/api/tags';",
+            f"const TAGS_ENDPOINT = '{api_url}/api/tags';"
+        )
+        
+        return Response(content, mimetype='application/javascript')
     except Exception as e:
         return jsonify({'error': 'Tracker script not found'}), 404
 
 @tracking_bp.route('/static/tracker.min.js', methods=['GET'])
 def serve_tracker_min_js():
-    """Serve the minified tracking script"""
+    """Serve the minified tracking script with dynamic configuration"""
     try:
         static_path, filename = FileServingService.get_tracker_script_info('minified')
         
         if not FileServingService.validate_file_exists(static_path, filename):
             return jsonify({'error': 'Tracker script not found'}), 404
-            
-        return send_from_directory(static_path, filename)
+        
+        # Read the original file
+        with open(os.path.join(static_path, filename), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Replace hardcoded URLs with configuration
+        api_url = Config.API_BASE_URL
+        # For minified files, we need to replace the actual URLs
+        content = content.replace(
+            '"http://localhost:5000/api/track"',
+            f'"{api_url}/api/track"'
+        )
+        content = content.replace(
+            '"http://localhost:5000/api/tags"',
+            f'"{api_url}/api/tags"'
+        )
+        
+        return Response(content, mimetype='application/javascript')
     except Exception as e:
         return jsonify({'error': 'Tracker script not found'}), 404
 
@@ -268,12 +301,78 @@ def serve_tracker_min_js():
 def serve_tracking_example():
     """Serve the tracking example page"""
     try:
-        public_path = FileServingService.get_frontend_public_path()
-        filename = 'tracking-example.html'
+        # Load the tracking example with dynamic configuration
+        static_path = FileServingService.get_frontend_static_path()
+        public_path = os.path.join(os.path.dirname(static_path), 'public')
         
-        if not FileServingService.validate_file_exists(public_path, filename):
-            return jsonify({'error': 'Example page not found'}), 404
-            
-        return send_from_directory(public_path, filename)
+        if not FileServingService.validate_file_exists(public_path, 'tracking-example.html'):
+            return jsonify({'error': 'Tracking example not found'}), 404
+        
+        # Read the file and replace placeholder URLs
+        with open(os.path.join(public_path, 'tracking-example.html'), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Replace hardcoded URLs with configuration
+        api_url = Config.API_BASE_URL
+        content = content.replace(
+            'http://localhost:5000',
+            api_url
+        )
+        
+        return Response(content, mimetype='text/html')
     except Exception as e:
-        return jsonify({'error': 'Example page not found'}), 404
+        return jsonify({'error': 'Tracking example not found'}), 404
+
+@tracking_bp.route('/static/tag-manager.js', methods=['GET'])
+def serve_tag_manager_js():
+    """Serve the tag manager script with dynamic configuration"""
+    try:
+        static_path = FileServingService.get_frontend_static_path()
+        filename = 'tag-manager.js'
+        
+        if not FileServingService.validate_file_exists(static_path, filename):
+            return jsonify({'error': 'Tag manager script not found'}), 404
+        
+        # Read the original file
+        with open(os.path.join(static_path, filename), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Replace hardcoded URLs with configuration
+        api_url = Config.API_BASE_URL
+        content = content.replace(
+            "const API_URL = 'http://localhost:5000';",
+            f"const API_URL = '{api_url}';"
+        )        
+        return Response(content, mimetype='application/javascript')
+    except Exception as e:
+        return jsonify({'error': 'Tag manager script not found'}), 404
+
+@tracking_bp.route('/static/tracker-with-tags.min.js', methods=['GET'])
+def serve_tracker_with_tags_min_js():
+    """Serve the minified tracking script with tags and dynamic configuration"""
+    try:
+        static_path = FileServingService.get_frontend_static_path()
+        filename = 'tracker-with-tags.min.js'
+        
+        if not FileServingService.validate_file_exists(static_path, filename):
+            return jsonify({'error': 'Tracker with tags script not found'}), 404
+        
+        # Read the original file
+        with open(os.path.join(static_path, filename), 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Replace hardcoded URLs with configuration
+        api_url = Config.API_BASE_URL
+        # For minified files, we need to replace the actual URLs
+        content = content.replace(
+            '"http://localhost:5000/api/track"',
+            f'"{api_url}/api/track"'
+        )
+        content = content.replace(
+            '"http://localhost:5000/api/tags"',
+            f'"{api_url}/api/tags"'
+        )
+        
+        return Response(content, mimetype='application/javascript')
+    except Exception as e:
+        return jsonify({'error': 'Tracker with tags script not found'}), 404

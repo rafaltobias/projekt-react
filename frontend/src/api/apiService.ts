@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { Stats, Tag } from './types';
+import { ENV } from '../config/environment';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = ENV.API_URL;
 
 export const trackVisit = async (
   pageUrl: string, 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import ConsentManager from '../utils/ConsentManager';
+import { ENV } from '../config/environment';
 
 const TrackingSetupPage: React.FC = () => {
   const [copySuccess, setCopySuccess] = useState<string>('');
   const [consentStatus, setConsentStatus] = useState(ConsentManager.getConsentStatus());
 
-  const trackingCode = `<script async src="http://localhost:5000/static/tracker.min.js"></script>`;
+  const trackingCode = `<script async src="${ENV.API_URL}/static/tracker.min.js"></script>`;
   
   const customEventExample = `// Track custom events
 VisitTracker.trackEvent('button_click', { 
@@ -268,11 +269,9 @@ VisitTracker.trackEvent('button_click', {
               
               <p className="mb-6 text-gray-600">
                 See the tracking in action with our demo page:
-              </p>
-
-              <div className="flex flex-wrap gap-4">
+              </p>              <div className="flex flex-wrap gap-4">
                 <a
-                  href="http://localhost:5000/tracking-example"
+                  href={`${ENV.API_URL}/tracking-example`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
@@ -317,13 +316,12 @@ VisitTracker.trackEvent('button_click', {
                   <div className="mt-4 bg-gray-900 rounded-lg overflow-hidden">
                     <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
                       <span className="text-gray-400 text-sm">index.html</span>
-                    </div>
-                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
+                    </div>                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
 {`<!DOCTYPE html>
 <html>
 <head>
   <title>My Website</title>
-  <script async src="http://localhost:5000/static/tracker.min.js"></script>
+  <script async src="${ENV.API_URL}/static/tracker.min.js"></script>
 </head>
 <body>
   <!-- Your content -->
@@ -343,15 +341,14 @@ VisitTracker.trackEvent('button_click', {
                   <div className="mt-4 bg-gray-900 rounded-lg overflow-hidden">
                     <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
                       <span className="text-gray-400 text-sm">React Component</span>
-                    </div>
-                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
+                    </div>                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
 {`// In your public/index.html
-<script async src="http://localhost:5000/static/tracker.min.js"></script>
+<script async src="${ENV.API_URL}/static/tracker.min.js"></script>
 
 // Or dynamically load in a component
 useEffect(() => {
   const script = document.createElement('script');
-  script.src = 'http://localhost:5000/static/tracker.min.js';
+  script.src = '${ENV.API_URL}/static/tracker.min.js';
   script.async = true;
   document.head.appendChild(script);
 }, []);`}
@@ -369,11 +366,10 @@ useEffect(() => {
                   <div className="mt-4 bg-gray-900 rounded-lg overflow-hidden">
                     <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
                       <span className="text-gray-400 text-sm">functions.php</span>
-                    </div>
-                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
+                    </div>                    <pre className="text-green-300 p-4 overflow-x-auto text-sm">
 {`// Add to your theme's functions.php
 function add_visit_tracker() {
-    echo '<script async src="http://localhost:5000/static/tracker.min.js"></script>';
+    echo '<script async src="${ENV.API_URL}/static/tracker.min.js"></script>';
 }
 add_action('wp_head', 'add_visit_tracker');`}
                     </pre>

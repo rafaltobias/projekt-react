@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { TrackingStats, RealtimeStats, TrackingEvents, SessionData, SessionAnalytics } from './types';
+import { ENV } from '../config/environment';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = ENV.API_URL;
 
 // Tracking API functions
 export const getTrackingStats = async (days = 30): Promise<TrackingStats> => {

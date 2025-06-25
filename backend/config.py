@@ -22,10 +22,12 @@ class Config:
     # Flask settings
     DEBUG = os.getenv('DEBUG', 'True') == 'True'
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    
-    # Server settings
+      # Server settings
     PORT = int(os.getenv('PORT', 5000))
     HOST = os.getenv('HOST', '0.0.0.0')
+    
+    # API settings
+    API_BASE_URL = os.getenv('API_BASE_URL', f'http://localhost:{PORT}')
 
 
 # Legacy compatibility - keep old variables for existing code
